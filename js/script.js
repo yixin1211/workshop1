@@ -9,6 +9,7 @@ var stateOption={
     "update":"update"
 }
 
+//e04
 
 $(function () {
     loadBookData();
