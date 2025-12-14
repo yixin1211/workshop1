@@ -29,7 +29,6 @@ $(function () {
         ]
     }).data("kendoWindow").center();
 
-
     $("#book_detail_area").kendoValidator();
 
     $("#book_record_area").kendoWindow({
@@ -76,12 +75,11 @@ $(function () {
     $("#btn-save").click(function (e) {
         e.preventDefault();
         
-        //TODO : 存檔前請作必填的檢查
-        //低消：使用 if else ==>alert 提示訊息檢查
-        //優  : 使用 kendo validator 檢查
+        var validator = $("#book_detail_area").data("kendoValidator");
 
-        if(!validator.validate()) {   //阻止存檔
-            alert("請填寫所有必填欄位");
+        // 檢查必填欄位
+        if (!validator.validate()) {
+            // 驗證失敗，顯示錯誤訊息並停止
             return;
         }
 
@@ -90,12 +88,11 @@ $(function () {
                 addBook();
                 break;
             case "update":
-                updateBook($("#book_id_d").val());
-            break;
+                updateBook(); 
+                break;
             default:
                 break;
         }
-        
     });
 
     $("#book_grid").kendoGrid({
@@ -253,46 +250,87 @@ function addBook() {
   * 更新書籍
   * @param {} bookId 
   */
-function updateBook(bookId){
-    
-    //TODO：請完成更新書籍的相關功能
-    var book=bookDataFromLocalStorage.find(m=>m.BookId==bookId)
+function updateBook() {
+    // 1. 從隱藏欄位取得 ID
+    var bookId = $("#book_id_d").val();
+    var book = bookDataFromLocalStorage.find(m => m.BookId == bookId);
 
-    book.BookName=$("#book_name_d").val();
-    book.BookClassId=$("#book_class_d").val();
-    book.BookClassName="";
-    book.BookBoughtDate=""
-    book.BookStatusId=""
-    book.BookStatusName=""
-    
-    var bookKeeperId=$("#book_keeper_d").data("kendoDropDownList").value();
-    var bookKeeperCname=
-        bookKeeperId==""?"":memberData.find(m=>m.UserId==bookKeeperId).UserCname;
+    // 2. 更新基本欄位
+    book.BookName = $("#book_name_d").val();
+    book.BookAuthor = $("#book_author_d").val();
+    book.BookPublisher = $("#book_publisher_d").val();
+    book.BookNote = $("#book_note_d").val();
 
-    book.BookKeeperId=bookKeeperId;
-    book.BookKeeperCname=bookKeeperCname;
-    book.BookKeeperEname="";
+    // 3. 更新日期 (需轉為字串)
+    var rawDate = $("#book_bought_date_d").data("kendoDatePicker").value();
+    book.BookBoughtDate = kendo.toString(rawDate, "yyyy-MM-dd");
 
-    book.BookAuthor="";
-    book.BookPublisher="";
-    book.BookNote="";
+    // 4. 更新類別 (需同時存 ID 和 中文名稱)
+    var classId = $("#book_class_d").data("kendoDropDownList").value();
+    book.BookClassId = classId;
+    book.BookClassName = classData.find(c => c.value == classId).text;
 
-    var grid=$("#book_grid").data("kendoGrid");
+    // 5. 更新借閱狀態
+    var statusId = $("#book_status_d").data("kendoDropDownList").value();
+    book.BookStatusId = statusId;
+    book.BookStatusName = bookStatusData.find(s => s.StatusId == statusId).StatusText;
+
+    // 6. 更新借閱人
+    var keeperId = $("#book_keeper_d").data("kendoDropDownList").value();
+    book.BookKeeperId = keeperId;
+    if (keeperId) {
+        var member = memberData.find(m => m.UserId == keeperId);
+        book.BookKeeperCname = member.UserCname;
+        book.BookKeeperEname = member.UserEname;
+    } else {
+        book.BookKeeperCname = "";
+        book.BookKeeperEname = "";
+    }
+
+    // 7. 寫入 LocalStorage (這行是資料能保存的關鍵)
+    localStorage.setItem("bookData", JSON.stringify(bookDataFromLocalStorage));
+
+    // 8. 更新畫面 Grid
+    var grid = $("#book_grid").data("kendoGrid");
     grid.dataSource.pushUpdate(book);
 
-    
-    if(bookStatusId=="B" || bookStatusId=="C"){
+    // 9. 處理借閱紀錄 (若變成已借出)
+    if (statusId == "B" || statusId == "C") {
         addBookLendRecord();
     }
-    
+
+    // 10. 關閉視窗
     $("#book_detail_area").data("kendoWindow").close();
+}
 
-    clear();
- }
-
- /**新增借閱紀錄 */
+ /**
+  * 新增借閱紀錄
+  */
  function addBookLendRecord() {  
-    //TODO：請完成新增借閱紀錄相關功能
+    // 1. 從修改視窗取得目前這本書的資訊
+    var bookId = $("#book_id_d").val();
+    var keeperId = $("#book_keeper_d").data("kendoDropDownList").value();
+
+    //如果沒選人，就不存紀錄
+    if (!keeperId) { 
+        return; 
+    }
+
+    // 2. 取得借閱人詳細資料 (中文/英文名)
+    var member = memberData.find(m => m.UserId == keeperId);
+
+    // 3. 建立一筆新的借閱紀錄物件
+    var newRecord = {
+        "BookId": parseInt(bookId), // 確保轉為數字
+        "BookKeeperId": keeperId,
+        "BookKeeperCname": member.UserCname,
+        "BookKeeperEname": member.UserEname,
+        "LendDate": kendo.toString(new Date(), "yyyy-MM-dd") // 借閱日期設為「今天」
+    };
+
+    // 4. 存入陣列與 LocalStorage
+    bookLendDataFromLocalStorage.push(newRecord);
+    localStorage.setItem("lendData", JSON.stringify(bookLendDataFromLocalStorage));
  }
 
  /**
@@ -384,16 +422,25 @@ function bindBook(bookId){
     $("#book_image_d").attr("src", imageSrc);
 }
 
+/**
+ * 顯示借閱紀錄視窗
+ */
 function showBookLendRecord(e) {
+    e.preventDefault(); // 防止連結跳轉
 
-    //TODO : 請補齊未完成的功能
-    var grid = getBooGrid();
-    var dataItem=grid.dataItem(e.target.closest("tr"))
-    var bookLendRecordData=[];
+    // 1. 取得目前點擊的那本書
+    var grid = $("#book_grid").data("kendoGrid");
+    var row = $(e.target).closest("tr");
+    var dataItem = grid.dataItem(row);
     
+    // 2. 從所有借閱紀錄中，篩選出「這本書 (BookId)」的紀錄
+    var bookLendRecordData = bookLendDataFromLocalStorage.filter(r => r.BookId == dataItem.BookId);
+    
+    // 3. 將篩選後的資料倒進「紀錄表格 (#book_record_grid)」
     $("#book_record_grid").data("kendoGrid").dataSource.data(bookLendRecordData);
-    $("#book_record_area").data("kendoWindow").title(dataItem.BookName).open();
-
+    
+    // 4. 設定視窗標題並開啟
+    $("#book_record_area").data("kendoWindow").title("借閱紀錄 - " + dataItem.BookName).open();
 }
 
 /**
