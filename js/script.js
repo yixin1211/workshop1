@@ -333,24 +333,49 @@ function updateBook() {
     localStorage.setItem("lendData", JSON.stringify(bookLendDataFromLocalStorage));
  }
 
- /**
-  * 查詢
-  */
+
+/**
+ * 查詢
+ */
 function queryBook(){
     
-    var grid=getBooGrid();
+    // 1. 取得 Grid 元件
+    var grid = $("#book_grid").data("kendoGrid");
 
-    var bookClassId=$("#book_class_q").data("kendoDropDownList").value() ?? "";
+    // 2. 抓取畫面上的查詢條件值
+    var bookName = $("#book_name_q").val();
+    var bookClassId = $("#book_class_q").data("kendoDropDownList").value();
+    var bookKeeperId = $("#book_keeper_q").data("kendoDropDownList").value();
+    var bookStatusId = $("#book_status_q").data("kendoDropDownList").value();
 
+    // 3. 建立篩選條件陣列 (Filter Array)
+    var filtersCondition = [];
 
-    var filtersCondition=[];
-    if(bookClassId!=""){
-        filtersCondition.push({ field: "BookClassId", operator: "contains", value: bookClassId });
+    // 條件 A: 書名 (使用 'contains' 包含/模糊搜尋)
+    if(bookName != ""){
+        filtersCondition.push({ field: "BookName", operator: "contains", value: bookName });
     }
 
+    // 條件 B: 圖書類別 (使用 'eq' 等於/精確比對)
+    if(bookClassId != ""){
+        filtersCondition.push({ field: "BookClassId", operator: "eq", value: bookClassId });
+    }
+
+    // 條件 C: 借閱人
+    if(bookKeeperId != ""){
+        filtersCondition.push({ field: "BookKeeperId", operator: "eq", value: bookKeeperId });
+    }
+
+    // 條件 D: 借閱狀態
+    if(bookStatusId != ""){
+        filtersCondition.push({ field: "BookStatusId", operator: "eq", value: bookStatusId });
+    }
+
+    // 4. 將條件應用到 Grid 的 DataSource
+    // logic: "and" 代表所有條件都要符合 (例如：要是 Networking 類別 "且" 是 Peter 借的)
     grid.dataSource.filter({
         logic: "and",
-        filters:filtersCondition
+        filters: filtersCondition
     });
 }
 
@@ -447,10 +472,21 @@ function showBookLendRecord(e) {
  * 清畫面
  * @param {*} area 
  */
-function clear(area) {
-    //TODO : 請補齊未完成的功能
+/**
+ * 清除查詢條件
+ */
+function clear() {
+    // 1. 清空文字輸入框
     $("#book_name_q").val("");
 
+    // 2. 重置所有下拉選單 (設為空字串，即回到 "請選擇" 的狀態)
+    $("#book_class_q").data("kendoDropDownList").value("");
+    $("#book_keeper_q").data("kendoDropDownList").value("");
+    $("#book_status_q").data("kendoDropDownList").value("");
+    
+    // 3. 清除後，重新載入所有書籍 (也就是做一次沒有條件的查詢)
+    // 這樣使用者按清除後，表格會自動顯示全部資料，體驗較好
+    queryBook(); 
 }
 
 /**
