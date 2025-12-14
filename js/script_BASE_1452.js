@@ -29,9 +29,6 @@ $(function () {
         ]
     }).data("kendoWindow").center();
 
-
-    $("#book_detail_area").kendoValidator();
-
     $("#book_record_area").kendoWindow({
         width: "700px",
         title: "借閱紀錄",
@@ -67,30 +64,18 @@ $(function () {
         queryBook();
     });
 
-    validator = $("#book_detail_area").kendoValidator({
-        messages: {
-            required: "此欄位為必填"
-        }
-    }).data("kendoValidator");
-
     $("#btn-save").click(function (e) {
         e.preventDefault();
         
         //TODO : 存檔前請作必填的檢查
         //低消：使用 if else ==>alert 提示訊息檢查
         //優  : 使用 kendo validator 檢查
-
-        if(!validator.validate()) {   //阻止存檔
-            alert("請填寫所有必填欄位");
-            return;
-        }
-
         switch (state) {
             case "add":
                 addBook();
                 break;
             case "update":
-                updateBook($("#book_id_d").val());
+                updateBook('9999');
             break;
             default:
                 break;
@@ -188,17 +173,11 @@ function loadBookData() {
 }
 
 function onChange() {
-
-    // 取得當前下拉選單選中的值
-    var selectedValue = $("#book_class_d").data("kendoDropDownList").value();
-    
-    // 根據選擇的值切換圖片
-    if(selectedValue === ""){
+    //TODO : 請完成遺漏的邏輯
+    if(selectedValue===""){
         $("#book_image_d").attr("src", "image/optional.jpg");
-    } else {
-        $("#book_image_d").attr("src", "image/" + selectedValue + ".jpg");
-
- 
+    }else{
+       
     }
 }
 
@@ -210,40 +189,21 @@ function addBook() {
 
     //TODO：請完成新增書籍的相關功能
     var grid=$("#book_grid").data("kendoGrid");
-    
-    var newBookId = 1;
-    if (bookDataFromLocalStorage.length > 0) {
-        newBookId = Math.max(...bookDataFromLocalStorage.map(b => b.BookId)) + 1;  //找出最大編號，新書籍編號+1
-    }
-
-    //將代碼轉成顯示文字
-    var bookClassId = $("#book_class_d").data("kendoDropDownList").value();
-    var bookClassName = classData.find(c => c.value === bookClassId)?.text || ""; 
-
-    var bookStatusId = "A";
-    var bookStatusName = bookStatusData.find(s => s.StatusId === "A").StatusText; 
-
-
     var book = {
-        "BookId": newBookId,
+        "BookId": 0,
         "BookName": $("#book_name_d").val(),
         "BookClassId": $("#book_class_d").data("kendoDropDownList").value(),
-        "BookClassName": bookClassName,
+        "BookClassName": "",
         "BookBoughtDate": kendo.toString($("#book_bought_date_d").data("kendoDatePicker").value(),"yyyy-MM-dd"),
-        "BookStatusId": bookStatusId,
-        "BookStatusName": bookStatusName,
+        "BookStatusId": "A",
+        "BookStatusName": bookStatusData.find(m=>m.StatusId==defauleBookStatusId).StatusText,
         "BookKeeperId": "",
         "BookKeeperCname": "",
         "BookKeeperEname": "",
-        "BookAuthor": $("#book_author_d").val(),
-        "BookPublisher": $("#book_publisher_d").val(),
-        "BookNote": $("#book_note_d").val()
-    };
-    
-    bookDataFromLocalStorage.push(book);
-    localStorage.setItem("bookData", JSON.stringify(bookDataFromLocalStorage)); //將資料寫入localStorage
-
-    grid.dataSource.add(book); //更新Grid
+        "BookAuthor": "",
+        "BookPublisher": "",
+        "BookNote": ""
+    }
 
     //關閉 Window
     $("#book_detail_area").data("kendoWindow").close();
@@ -365,23 +325,11 @@ function showBookForDetail(e,bookId) {
  */
 function bindBook(bookId){
     var book = bookDataFromLocalStorage.find(m => m.BookId == bookId);
-    
-    // 1. 基本欄位
     $("#book_id_d").val(bookId);
     $("#book_name_d").val(book.BookName);
     $("#book_author_d").val(book.BookAuthor);
     $("#book_publisher_d").val(book.BookPublisher);
-    
-    // 2. 缺漏的欄位
-    $("#book_note_d").val(book.BookNote); // 內容簡介
-    $("#book_class_d").data("kendoDropDownList").value(book.BookClassId); // 圖書類別
-    $("#book_bought_date_d").data("kendoDatePicker").value(book.BookBoughtDate); // 購買日期
-    $("#book_status_d").data("kendoDropDownList").value(book.BookStatusId); // 借閱狀態
-    $("#book_keeper_d").data("kendoDropDownList").value(book.BookKeeperId); // 借閱人
-
-    // 3. 設定圖片 (根據類別代碼顯示對應圖片)
-    var imageSrc = book.BookClassId ? "image/" + book.BookClassId + ".jpg" : "image/optional.jpg";
-    $("#book_image_d").attr("src", imageSrc);
+    //TODO : 完成尚未完成的程式碼
 }
 
 function showBookLendRecord(e) {
@@ -410,7 +358,7 @@ function clear(area) {
  * 設定借閱狀態與借閱人關聯
  */
 function setStatusKeepRelation() { 
-    //TODO : 請補齊借閱人與借閱狀態相關邏輯(完成)
+    //TODO : 請補齊借閱人與借閱狀態相關邏輯
     switch (state) {
         case "add"://新增狀態
             $("#book_status_d_col").css("display","none");
@@ -420,9 +368,6 @@ function setStatusKeepRelation() {
             $("#book_keeper_d").prop('required',false);            
             break;
         case "update"://修改狀態
-
-            $("#book_status_d_col").show();
-            $("#book_keeper_d_col").show();
 
             $("#book_status_d").prop('required',true);
 
