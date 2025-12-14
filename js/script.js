@@ -8,7 +8,7 @@ var stateOption={
     "add":"add",
     "update":"update"
 }
-//屁眼
+
 
 $(function () {
     loadBookData();
@@ -64,18 +64,30 @@ $(function () {
         queryBook();
     });
 
+    validator = $("#book_detail_area").kendoValidator({
+        messages: {
+            required: "此欄位為必填"
+        }
+    }).data("kendoValidator");
+
     $("#btn-save").click(function (e) {
         e.preventDefault();
         
         //TODO : 存檔前請作必填的檢查
         //低消：使用 if else ==>alert 提示訊息檢查
         //優  : 使用 kendo validator 檢查
+
+        if(!validator.validate()) {   //阻止存檔
+            alert("請填寫所有必填欄位");
+            return;
+        }
+
         switch (state) {
             case "add":
                 addBook();
                 break;
             case "update":
-                updateBook('9999');
+                updateBook($("#book_id_d").val());
             break;
             default:
                 break;
@@ -174,10 +186,16 @@ function loadBookData() {
 
 function onChange() {
     //TODO : 請完成遺漏的邏輯
+
+    //取得代碼
+    var selectedValue = $("#book_class_d")
+    .data("kendoDropDownList")
+    .value();
+
     if(selectedValue===""){
-        $("#book_image_d").attr("src", "image/optional.jpg");
+        $("#book_image_d").attr("src", "image/optional.jpg");  //沒選類別，預設圖片
     }else{
-       
+        $("#book_image_d").attr("src", "image/" + selectedValue + ".jpg"); //有選類別，對應圖片
     }
 }
 
@@ -189,21 +207,40 @@ function addBook() {
 
     //TODO：請完成新增書籍的相關功能
     var grid=$("#book_grid").data("kendoGrid");
+    
+    var newBookId = 1;
+    if (bookDataFromLocalStorage.length > 0) {
+        newBookId = Math.max(...bookDataFromLocalStorage.map(b => b.BookId)) + 1;  //找出最大編號，新書籍編號+1
+    }
+
+    //將代碼轉成顯示文字
+    var bookClassId = $("#book_class_d").data("kendoDropDownList").value();
+    var bookClassName = classData.find(c => c.value === bookClassId)?.text || ""; 
+
+    var bookStatusId = "A";
+    var bookStatusName = bookStatusData.find(s => s.StatusId === "A").StatusText; 
+
+
     var book = {
-        "BookId": 0,
+        "BookId": newBookId,
         "BookName": $("#book_name_d").val(),
         "BookClassId": $("#book_class_d").data("kendoDropDownList").value(),
-        "BookClassName": "",
+        "BookClassName": bookClassName,
         "BookBoughtDate": kendo.toString($("#book_bought_date_d").data("kendoDatePicker").value(),"yyyy-MM-dd"),
-        "BookStatusId": "A",
-        "BookStatusName": bookStatusData.find(m=>m.StatusId==defauleBookStatusId).StatusText,
+        "BookStatusId": bookStatusId,
+        "BookStatusName": bookStatusName,
         "BookKeeperId": "",
         "BookKeeperCname": "",
         "BookKeeperEname": "",
-        "BookAuthor": "",
-        "BookPublisher": "",
-        "BookNote": ""
-    }
+        "BookAuthor": $("#book_author_d").val(),
+        "BookPublisher": $("#book_publisher_d").val(),
+        "BookNote": $("#book_note_d").val()
+    };
+    
+    bookDataFromLocalStorage.push(book);
+    localStorage.setItem("bookData", JSON.stringify(bookDataFromLocalStorage)); //將資料寫入localStorage
+
+    grid.dataSource.add(book); //更新Grid
 
     //關閉 Window
     $("#book_detail_area").data("kendoWindow").close();
