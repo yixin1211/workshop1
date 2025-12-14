@@ -29,6 +29,9 @@ $(function () {
         ]
     }).data("kendoWindow").center();
 
+
+    $("#book_detail_area").kendoValidator();
+
     $("#book_record_area").kendoWindow({
         width: "700px",
         title: "借閱紀錄",
@@ -173,11 +176,14 @@ function loadBookData() {
 }
 
 function onChange() {
-    //TODO : 請完成遺漏的邏輯
-    if(selectedValue===""){
+    // 取得當前下拉選單選中的值
+    var selectedValue = $("#book_class_d").data("kendoDropDownList").value();
+    
+    // 根據選擇的值切換圖片
+    if(selectedValue === ""){
         $("#book_image_d").attr("src", "image/optional.jpg");
-    }else{
-       
+    } else {
+        $("#book_image_d").attr("src", "image/" + selectedValue + ".jpg");
     }
 }
 
@@ -325,11 +331,23 @@ function showBookForDetail(e,bookId) {
  */
 function bindBook(bookId){
     var book = bookDataFromLocalStorage.find(m => m.BookId == bookId);
+    
+    // 1. 基本欄位
     $("#book_id_d").val(bookId);
     $("#book_name_d").val(book.BookName);
     $("#book_author_d").val(book.BookAuthor);
     $("#book_publisher_d").val(book.BookPublisher);
-    //TODO : 完成尚未完成的程式碼
+    
+    // 2. 缺漏的欄位
+    $("#book_note_d").val(book.BookNote); // 內容簡介
+    $("#book_class_d").data("kendoDropDownList").value(book.BookClassId); // 圖書類別
+    $("#book_bought_date_d").data("kendoDatePicker").value(book.BookBoughtDate); // 購買日期
+    $("#book_status_d").data("kendoDropDownList").value(book.BookStatusId); // 借閱狀態
+    $("#book_keeper_d").data("kendoDropDownList").value(book.BookKeeperId); // 借閱人
+
+    // 3. 設定圖片 (根據類別代碼顯示對應圖片)
+    var imageSrc = book.BookClassId ? "image/" + book.BookClassId + ".jpg" : "image/optional.jpg";
+    $("#book_image_d").attr("src", imageSrc);
 }
 
 function showBookLendRecord(e) {
@@ -358,7 +376,7 @@ function clear(area) {
  * 設定借閱狀態與借閱人關聯
  */
 function setStatusKeepRelation() { 
-    //TODO : 請補齊借閱人與借閱狀態相關邏輯
+    //TODO : 請補齊借閱人與借閱狀態相關邏輯(完成)
     switch (state) {
         case "add"://新增狀態
             $("#book_status_d_col").css("display","none");
@@ -368,6 +386,9 @@ function setStatusKeepRelation() {
             $("#book_keeper_d").prop('required',false);            
             break;
         case "update"://修改狀態
+
+            $("#book_status_d_col").show();
+            $("#book_keeper_d_col").show();
 
             $("#book_status_d").prop('required',true);
 
