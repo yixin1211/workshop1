@@ -49,6 +49,27 @@ $(function () {
 
         setStatusKeepRelation(state);
 
+        $("#btn-save").show(); 
+        
+        // 2. 解鎖所有欄位
+        $(".k-textbox, .k-textarea").prop("disabled", false);
+        $("#book_class_d").data("kendoDropDownList").enable(true);
+        $("#book_bought_date_d").data("kendoDatePicker").enable(true);
+        $("#book_status_d").data("kendoDropDownList").enable(true);
+        $("#book_keeper_d").data("kendoDropDownList").enable(true);
+
+        // 3. 清空欄位 (因為是新增，給一個乾淨的表單)
+        $("#book_name_d").val("");
+        $("#book_author_d").val("");
+        $("#book_publisher_d").val("");
+        $("#book_note_d").val("");
+        // 下拉選單選第一個
+        $("#book_class_d").data("kendoDropDownList").select(0);
+        $("#book_status_d").data("kendoDropDownList").value("A"); // 預設可借出
+        $("#book_keeper_d").data("kendoDropDownList").value("");
+        // 圖片重置
+        $("#book_image_d").attr("src", "image/optional.jpg");
+
         $("#btn-save").css("display","");        
         $("#book_detail_area").data("kendoWindow").title("新增書籍");
         $("#book_detail_area").data("kendoWindow").open();
@@ -400,7 +421,15 @@ function showBookForUpdate(e) {
 
     state=stateOption.update;
     $("#book_detail_area").data("kendoWindow").title("修改書籍");
-    $("#btn-save").css("display","");
+    $("#btn-save").show(); // 顯示存檔按鈕
+    
+    // 解鎖所有欄位
+    $(".k-textbox, .k-textarea").prop("disabled", false);
+    $("#book_class_d").data("kendoDropDownList").enable(true);
+    $("#book_bought_date_d").data("kendoDatePicker").enable(true);
+    $("#book_status_d").data("kendoDropDownList").enable(true);
+    
+    $("#book_keeper_d").data("kendoDropDownList").enable(true);
 
     var grid = getBooGrid();
     var bookId = grid.dataItem(e.target.closest("tr")).BookId;
@@ -416,11 +445,34 @@ function showBookForUpdate(e) {
  * @param {} e 
  * @param {*} bookId 
  */
-function showBookForDetail(e,bookId) {
+
+function showBookForDetail(e, bookId) {
     e.preventDefault();
-    //TODO : 請補齊未完成的功能
+
+    // 1. 設定視窗標題
     $("#book_detail_area").data("kendoWindow").title("書籍明細");
 
+    // 2. 填入書籍資料 (利用之前寫好的 bindBook)
+    bindBook(bookId);
+
+    // 3. 隱藏存檔按鈕 (唯讀模式不需要存檔)
+    $("#btn-save").hide();
+
+    // 4. 鎖定所有欄位 (Disable)
+    // 鎖定文字框與多行文字框
+    $(".k-textbox, .k-textarea").prop("disabled", true);
+    // 鎖定 Kendo 控制項 (下拉選單、日期)
+    $("#book_class_d").data("kendoDropDownList").enable(false);
+    $("#book_bought_date_d").data("kendoDatePicker").enable(false);
+    $("#book_status_d").data("kendoDropDownList").enable(false);
+    $("#book_keeper_d").data("kendoDropDownList").enable(false);
+
+    // 5. 確保狀態與借閱人欄位顯示出來 (以免之前被隱藏)
+    $("#book_status_d_col").show();
+    $("#book_keeper_d_col").show();
+
+    // 6. 開啟視窗
+    $("#book_detail_area").data("kendoWindow").open();
 }
 
 /**
