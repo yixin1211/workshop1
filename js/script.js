@@ -380,14 +380,31 @@ function queryBook(){
 }
 
 function deleteBook(e) {
+    e.preventDefault(); // 防止連結跳轉
+
+    // 1. 取得 Grid 與被點擊的那一行資料
+    var grid = $("#book_grid").data("kendoGrid");
+    var row = $(e.target).closest("tr");
+    var dataItem = grid.dataItem(row);
+
+    // 2. 詢問使用者確認刪除
+    if (!confirm("確定要刪除 [" + dataItem.BookName + "] 嗎？")) {
+        return;
+    }
+
+    // 3. 從本地資料陣列中移除該筆資料
+    // 使用 filter 過濾掉該 ID 的書，剩下的就是沒被刪除的
+    bookDataFromLocalStorage = bookDataFromLocalStorage.filter(b => b.BookId != dataItem.BookId);
+
+    // 4. 更新 LocalStorage
+    localStorage.setItem("bookData", JSON.stringify(bookDataFromLocalStorage));
+
+    // 5. 從畫面 Grid 移除
+    grid.dataSource.remove(dataItem);
     
-    var grid = $("#book_grid").data("kendoGrid");    
-    var row = grid.dataItem(e.target.closest("tr"));
-
-    grid.dataSource.remove(row);    
     alert("刪除成功");
-
 }
+
 
 
 /**
