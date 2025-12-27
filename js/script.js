@@ -606,22 +606,21 @@ function setStatusKeepRelation() {
             $("#book_status_d").prop('required',false);
             $("#book_keeper_d").prop('required',false);            
             break;
-        case "update"://修改狀態
-
+        case "update": // 修改狀態
             $("#book_status_d_col").show();
-            $("#book_keeper_d_col").show();
-
-            $("#book_status_d").prop('required',true);
-
-            var bookStatusId=$("#book_status_d").data("kendoDropDownList").value();
-
-            if(bookStatusId=="A" || bookStatusId=="U"){
-                $("#book_keeper_d").prop('required',false);
+        
+            var bookStatusId = $("#book_status_d")
+                .data("kendoDropDownList").value();
+        
+            if (bookStatusId === "A" || bookStatusId === "U") {
+                // 可借出 / 不可借 → 不顯示借閱人
+                $("#book_keeper_d_col").hide();
+                $("#book_keeper_d").prop('required', false);
                 $("#book_keeper_d").data("kendoDropDownList").value("");
-                $("#book_detail_area").data("kendoValidator").validateInput($("#book_keeper_d"));
-                     
-            }else{
-                $("#book_keeper_d").prop('required',true);
+            } else {
+                // 已借出 / 未領 → 顯示借閱人
+                $("#book_keeper_d_col").show();
+                $("#book_keeper_d").prop('required', true);
             }
             break;
         default:
