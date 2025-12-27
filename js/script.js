@@ -9,7 +9,6 @@ var stateOption={
     "update":"update"
 }
 
-//e04
 
 $(function () {
     loadBookData();
@@ -44,8 +43,18 @@ $(function () {
     
 
     $("#btn_add_book").click(function (e) {
-        e.preventDefault();
-        state=stateOption.add;
+    e.preventDefault();
+
+    // 清除紅字
+    var validator = $("#book_detail_area").data("kendoValidator");
+    if (validator) {
+        validator.hideMessages();
+    }
+    
+    $(".k-invalid").removeClass("k-invalid");
+
+    state = stateOption.add;
+    
 
         setStatusKeepRelation(state);
 
@@ -58,11 +67,13 @@ $(function () {
         $("#book_status_d").data("kendoDropDownList").enable(true);
         $("#book_keeper_d").data("kendoDropDownList").enable(true);
 
-        // 3. 清空欄位 (因為是新增，給一個乾淨的表單)
+        // 3. 清空欄位
         $("#book_name_d").val("");
         $("#book_author_d").val("");
         $("#book_publisher_d").val("");
         $("#book_note_d").val("");
+        $("#book_bought_date_d").val("");
+        
         // 下拉選單選第一個
         $("#book_class_d").data("kendoDropDownList").select(0);
         $("#book_status_d").data("kendoDropDownList").value("A"); // 預設可借出
@@ -409,6 +420,11 @@ function deleteBook(e) {
     var row = $(e.target).closest("tr");
     var dataItem = grid.dataItem(row);
 
+    // 檢查借閱狀態 (B: 已借出, C: 已借出未領)
+    if (dataItem.BookStatusId == "B" || dataItem.BookStatusId == "C") {
+        alert("已借出的書籍無法刪除！");
+        return; // 直接結束，不執行刪除
+    }
     // 2. 詢問使用者確認刪除
     if (!confirm("確定要刪除 [" + dataItem.BookName + "] 嗎？")) {
         return;
@@ -435,8 +451,18 @@ function deleteBook(e) {
  */
 function showBookForUpdate(e) {
     e.preventDefault();
+    
+    // 清除紅字
+    var validator = $("#book_detail_area").data("kendoValidator");
+    if (validator) {
+        validator.hideMessages();
+    }
+    
+    $(".k-invalid").removeClass("k-invalid");
 
-    state=stateOption.update;
+    state = stateOption.update;
+    
+
     $("#book_detail_area").data("kendoWindow").title("修改書籍");
     $("#btn-save").show(); // 顯示存檔按鈕
     
@@ -465,6 +491,14 @@ function showBookForUpdate(e) {
 
 function showBookForDetail(e, bookId) {
     e.preventDefault();
+
+    var validator = $("#book_detail_area").data("kendoValidator");
+    if (validator) {
+        validator.hideMessages();
+    }
+    $(".k-invalid").removeClass("k-invalid");
+
+
 
     // 1. 設定視窗標題
     $("#book_detail_area").data("kendoWindow").title("書籍明細");
@@ -652,7 +686,8 @@ function registerRegularComponent(){
 
 
     $("#book_bought_date_d").kendoDatePicker({
-        value: new Date()
+        value: new Date(),
+        format:"yyyy-MM-dd"
     });
 }
 
