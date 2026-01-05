@@ -307,17 +307,21 @@ function bindBookData(bookId, isReadOnly){
         success: function(book){
             if(!book) { alert("找不到資料"); return; }
 
-            // 1. 填入資料
-            $("#book_id_d").val(book.BookId);
-            $("#book_name_d").val(book.BookName);
-            $("#book_author_d").val(book.BookAuthor);
-            $("#book_publisher_d").val(book.BookPublisher);
-            $("#book_note_d").val(book.BookNote);
-            
-            $("#book_class_d").data("kendoDropDownList").value(book.BookClassId);
-            $("#book_bought_date_d").data("kendoDatePicker").value(book.BookBoughtDate);
-            $("#book_status_d").data("kendoDropDownList").value(book.BookStatusId);
-            $("#book_keeper_d").data("kendoDropDownList").value(book.BookKeeperId);
+            // 1. 填入資料（全部改成 camelCase）
+            $("#book_id_d").val(book.bookId);
+            $("#book_name_d").val(book.bookName);
+            $("#book_author_d").val(book.bookAuthor);
+            $("#book_publisher_d").val(book.bookPublisher);
+            $("#book_note_d").val(book.bookNote);
+
+            $("#book_class_d").data("kendoDropDownList").value(book.bookClassId);
+            $("#book_status_d").data("kendoDropDownList").value(book.bookStatusId);
+            $("#book_keeper_d").data("kendoDropDownList").value(book.bookKeeperId);
+
+            // 日期轉 Date
+            $("#book_bought_date_d")
+            .data("kendoDatePicker")
+            .value(new Date(book.bookBoughtDate));
 
             // 觸發圖片更新
             onChange(); 
