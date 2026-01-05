@@ -1,6 +1,6 @@
 
 var apiBaseUrl = "https://localhost:7246"; 
-
+var memberData = [];
 var state = "";
 var stateOption = {
     "add": "add",
@@ -10,6 +10,8 @@ var stateOption = {
 
 
 $(function () {
+    loadAllMembers();
+
     // 1. 初始化所有元件 (下拉選單、日期、Grid)
     registerRegularComponent();
 
@@ -494,8 +496,8 @@ function registerRegularComponent(){
               template: function (dataItem) {
                 if (!dataItem.bookKeeperId) return "";
 
-                var member = memberData.find(m => m.UserId === dataItem.bookKeeperId);
-                return member ? member.UserCname : dataItem.bookKeeperId;
+                var member = memberData.find(m => m.userId === dataItem.bookKeeperId);
+                return member ? member.userCname : dataItem.bookKeeperId;
             }
             },
             { command: { text: "借閱紀錄", click: showBookLendRecord}, title:" ", width: "120px"},
@@ -507,7 +509,6 @@ function registerRegularComponent(){
 
 function showBookLendRecord(e) {
     e.preventDefault();
-<<<<<<< HEAD
 
     // 1. 取得被點擊的那一列資料
     var grid = $("#book_grid").data("kendoGrid");
@@ -560,8 +561,6 @@ function openBookLendRecordWindow(data) {
         .data("kendoWindow")
         .title("借閱紀錄")
         .open();
-=======
-    alert("目前系統尚未開放查詢 API 端的借閱紀錄功能");
    
 }
 
@@ -627,5 +626,19 @@ function editMember(e) {
     e.preventDefault();
     const dataItem = this.dataItem($(e.currentTarget).closest("tr"));
     alert("之後在這裡做修改\n\nID：" + dataItem.userId);
->>>>>>> origin/1124548
+
+}
+
+function loadAllMembers() {
+    $.ajax({
+        url: apiBaseUrl + "/api/member/query",
+        type: "GET",
+        success: function (res) {
+            memberData = res;
+            console.log("memberData loaded:", memberData.length);
+        },
+        error: function () {
+            alert("載入借閱人清單失敗");
+        }
+    });
 }
