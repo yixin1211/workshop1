@@ -63,6 +63,7 @@
                             <button id="btn_query" class="k-button">查詢</button>
                             <button id="btn_clear" class="k-button">清除</button>
                             <button id="btn_add_book" class="k-button k-primary">新增</button>
+                             <button id="btn_member_directory" class="k-button k-info">借閱人目錄</button>
                         </div>
                     
                 </div>
@@ -164,6 +165,19 @@
             <div id="book_record_grid">
             </div>
         </div>
+
+        <!-- 借閱人目錄視窗 -->
+        <div id="member_modal" class="modal-mask" style="display:none;">
+            <div class="modal-window">
+                <div class="modal-header">
+                    <span>借閱人目錄</span>
+                    <button type="button" onclick="closeMemberDirectory()">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div id="member_grid"></div>
+                </div>
+            </div>
+        </div>  
     </main>
 
     <footer>

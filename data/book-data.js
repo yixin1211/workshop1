@@ -1,3 +1,4 @@
+var memberData = [];
 var bookData =
 [
     {
