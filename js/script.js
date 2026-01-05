@@ -71,6 +71,7 @@ $(function () {
         $("#book_class_d").data("kendoDropDownList").select(0);
         $("#book_status_d").data("kendoDropDownList").value("A"); // 預設可借出
         $("#book_keeper_d").data("kendoDropDownList").value("");
+        setStatusKeepRelation(); // 設定欄位連動
         $("#book_bought_date_d").data("kendoDatePicker").value(new Date());
 
         // 圖片重置
@@ -317,6 +318,7 @@ function bindBookData(bookId, isReadOnly){
             $("#book_class_d").data("kendoDropDownList").value(book.bookClassId);
             $("#book_status_d").data("kendoDropDownList").value(book.bookStatusId);
             $("#book_keeper_d").data("kendoDropDownList").value(book.bookKeeperId);
+            setStatusKeepRelation(); // 狀態借閱人連動
 
             // 日期轉 Date
             $("#book_bought_date_d")
@@ -436,7 +438,9 @@ function registerRegularComponent(){
         dataTextField: "StatusText",
         dataValueField: "StatusId",
         dataSource: bookStatusData,
-        optionLabel: "請選擇"
+        optionLabel: "請選擇",
+        change: setStatusKeepRelation // 狀態改變時觸發連動
+
     });
 
     // ===== 新增 / 修改：借閱人 =====
@@ -505,4 +509,5 @@ function showBookLendRecord(e) {
     e.preventDefault();
     alert("目前系統尚未開放查詢 API 端的借閱紀錄功能");
    
+
 }
