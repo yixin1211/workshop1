@@ -173,11 +173,47 @@
                     <span>借閱人目錄</span>
                     <button type="button" onclick="closeMemberDirectory()">✕</button>
                 </div>
+
                 <div class="modal-body">
+
+                    <!-- 新增借閱人按鈕-->
+                    <div style="margin-bottom:10px; text-align:right;">
+                        <button id="btn_add_member" class="k-button k-primary">
+                            新增借閱人
+                        </button>
+                    </div>
                     <div id="member_grid"></div>
+
                 </div>
             </div>
         </div>  
+        <!-- 借閱人 新增 / 修改 視窗 -->
+        <div id="member_edit_window" style="display:none;">
+            <div class="row g-3">
+
+                <div class="col-12">
+                    <label class="required">借閱人 ID</label>
+                    <input id="edit_user_id" class="k-textbox" style="width:100%;" />
+                </div>
+
+                <div class="col-12">
+                    <label class="required">中文姓名</label>
+                    <input id="edit_user_cname" class="k-textbox" style="width:100%;" />
+                </div>
+
+                <div class="col-12">
+                    <label class="required">英文姓名</label>
+                    <input id="edit_user_ename" class="k-textbox" style="width:100%;" />
+                </div>
+
+                <div class="col-12 text-end" style="margin-top:10px;">
+                    <button id="btn_save_member" class="k-button k-primary">
+                        儲存
+                    </button>
+                </div>
+
+            </div>
+        </div>
     </main>
 
     <footer>

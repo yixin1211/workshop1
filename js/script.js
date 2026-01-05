@@ -624,10 +624,37 @@ function closeMemberDirectory() {
 // 修改借閱人（先占位）
 function editMember(e) {
     e.preventDefault();
-    const dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-    alert("之後在這裡做修改\n\nID：" + dataItem.userId);
 
+    const dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+    // 設定模式
+    memberMode = "update";
+
+    // 填資料到視窗
+    $("#edit_user_id").val(dataItem.userId).prop("disabled", true);
+    $("#edit_user_cname").val(dataItem.userCname);
+    $("#edit_user_ename").val(dataItem.userEname);
+
+    // 開啟視窗
+    $("#member_edit_window")
+        .data("kendoWindow")
+        .title("修改借閱人")
+        .open();
 }
+
+$("#btn_add_member").on("click", function () {
+    memberMode = "add";
+
+    // 清空欄位
+    $("#edit_user_id").val("").prop("disabled", false);
+    $("#edit_user_cname").val("");
+    $("#edit_user_ename").val("");
+
+    $("#member_edit_window")
+        .data("kendoWindow")
+        .title("新增借閱人")
+        .open();
+});
 
 function loadAllMembers() {
     $.ajax({
@@ -642,3 +669,41 @@ function loadAllMembers() {
         }
     });
 }
+
+$("#btn_save_member").on("click", function () {
+
+    const payload = {
+        UserId: $("#edit_user_id").val(),
+        UserCname: $("#edit_user_cname").val(),
+        UserEname: $("#edit_user_ename").val()
+    };
+
+    let url = "";
+
+    if (memberMode === "add") {
+        url = apiBaseUrl + "/api/member/add";
+    } else {
+        url = apiBaseUrl + "/api/member/update";
+    }
+
+    $.ajax({
+        url: url,
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(payload),
+        success: function () {
+            alert("儲存成功");
+
+            $("#member_edit_window").data("kendoWindow").close();
+
+            // 重抓借閱人
+            loadAllMembers();
+
+            // 重刷目錄 Grid
+            openMemberDirectory();
+        },
+        error: function () {
+            alert("儲存失敗");
+        }
+    });
+});
