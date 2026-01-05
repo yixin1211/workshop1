@@ -502,3 +502,67 @@ function showBookLendRecord(e) {
     alert("目前系統尚未開放查詢 API 端的借閱紀錄功能");
    
 }
+
+// ===== 借閱人目錄 =====
+$(document).ready(function () {
+
+    // 點擊「借閱人目錄」按鈕
+    $("#btn_member_directory").on("click", function () {
+        openMemberDirectory();
+    });
+
+});
+
+// 開啟借閱人目錄
+function openMemberDirectory() {
+
+    // 顯示 modal
+    $("#member_modal").show();
+
+    // 如果 grid 已存在，先銷毀避免重複初始化
+    if ($("#member_grid").data("kendoGrid")) {
+        $("#member_grid").data("kendoGrid").destroy();
+        $("#member_grid").empty();
+    }
+
+    // 取得借閱人資料
+    fetch("https://localhost:7246/api/member/query")
+        .then(r => r.json())
+        .then(data => {
+
+            $("#member_grid").kendoGrid({
+                dataSource: {
+                    data: data,
+                    pageSize: 10
+                },
+                pageable: true,
+                sortable: true,
+                columns: [
+                    { field: "userId", title: "借閱人 ID", width: "120px" },
+                    { field: "userCname", title: "中文姓名" },
+                    { field: "userEname", title: "英文姓名" },
+                    {
+                        command: {
+                            text: "修改",
+                            click: editMember
+                        },
+                        title: "操作",
+                        width: "120px"
+                    }
+                ]
+            });
+
+        });
+}
+
+// 關閉借閱人目錄
+function closeMemberDirectory() {
+    $("#member_modal").hide();
+}
+
+// 修改借閱人（先占位）
+function editMember(e) {
+    e.preventDefault();
+    const dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+    alert("之後在這裡做修改\n\nID：" + dataItem.userId);
+}
