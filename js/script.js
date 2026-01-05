@@ -507,7 +507,56 @@ function registerRegularComponent(){
 
 function showBookLendRecord(e) {
     e.preventDefault();
-    alert("目前系統尚未開放查詢 API 端的借閱紀錄功能");
-   
 
+    // 1. 取得被點擊的那一列資料
+    var grid = $("#book_grid").data("kendoGrid");
+    var dataItem = grid.dataItem($(e.target).closest("tr"));
+
+    var bookId = dataItem.bookId;
+
+    console.log("借閱紀錄 bookId =", bookId);
+
+    // 2. 呼叫後端 API
+    $.ajax({
+        url: apiBaseUrl + "/api/bookmaintain/lendrecords",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(bookId),
+        success: function (records) {
+            openBookLendRecordWindow(records);
+        },
+        error: function () {
+            alert("取得借閱紀錄失敗");
+        }
+    });
+}
+
+function openBookLendRecordWindow(data) {
+
+    // 如果 Grid 還沒建立，先建立
+    if (!$("#book_record_grid").data("kendoGrid")) {
+        $("#book_record_grid").kendoGrid({
+            dataSource: {
+                data: data
+            },
+            columns: [
+                { field: "bookName", title: "書名", width: "30%" },
+                { field: "bookKeeperCname", title: "借閱人", width: "20%" },
+                { field: "bookKeeperEname", title: "英文名", width: "20%" },
+                { field: "lendDate", title: "借閱日期", width: "30%" }
+            ]
+        });
+    } else {
+        // 已存在就只更新資料
+        $("#book_record_grid")
+            .data("kendoGrid")
+            .dataSource
+            .data(data);
+    }
+
+    // 開啟視窗
+    $("#book_record_area")
+        .data("kendoWindow")
+        .title("借閱紀錄")
+        .open();
 }
