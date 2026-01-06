@@ -1,6 +1,7 @@
 
 var apiBaseUrl = "https://localhost:7246"; 
 var memberData = [];
+var memberEditWindow;
 var state = "";
 var stateOption = {
     "add": "add",
@@ -10,10 +11,18 @@ var stateOption = {
 
 
 $(function () {
+
+    registerRegularComponent();
     loadAllMembers();
 
-    // 1. 初始化所有元件 (下拉選單、日期、Grid)
-    registerRegularComponent();
+    // 初始化借閱人新增 / 修改視窗
+    $("#member_edit_window").kendoWindow({
+        width: "500px",
+        title: "借閱人維護",
+        visible: false,
+        modal: true,
+        actions: ["Close"]
+    });
 
     // 2. 初始化新增/修改視窗
     $("#book_detail_area").kendoWindow({
@@ -109,8 +118,6 @@ $(function () {
         }
     });
 
-    // 畫面載入後，先自動執行一次查詢，讓 Grid 有資料
-    queryBook();
 });
 
 
@@ -413,9 +420,9 @@ function registerRegularComponent(){
     });
 
     $("#book_keeper_q").kendoDropDownList({
-        dataTextField: "UserCname",
-        dataValueField: "UserId",
-        dataSource: memberData,
+        dataTextField: "userCname",
+        dataValueField: "userId",
+        dataSource: [],
         optionLabel: "請選擇"
     });
 
@@ -447,9 +454,9 @@ function registerRegularComponent(){
 
     // ===== 新增 / 修改：借閱人 =====
     $("#book_keeper_d").kendoDropDownList({
-        dataTextField: "UserCname",
-        dataValueField: "UserId",
-        dataSource: memberData,
+        dataTextField: "userCname",
+        dataValueField: "userId",
+        dataSource: [],
         optionLabel: "請選擇"
     });
 
@@ -645,8 +652,15 @@ function editMember(e) {
 $("#btn_add_member").on("click", function () {
     memberMode = "add";
 
+    // ID不可手動輸入
+    $("#edit_user_id")
+        .val("")
+        .prop("disabled", true);
+
+    // 取得下一號 ID（重點）
+    loadNextMemberId()
+
     // 清空欄位
-    $("#edit_user_id").val("").prop("disabled", false);
     $("#edit_user_cname").val("");
     $("#edit_user_ename").val("");
 
@@ -661,10 +675,24 @@ function loadAllMembers() {
         url: apiBaseUrl + "/api/member/query",
         type: "GET",
         success: function (res) {
-            memberData = res;
-            console.log("memberData loaded:", memberData.length);
+            memberData = res || [];
+
+            // 重新灌：查詢用借閱人下拉
+            var keeperQ = $("#book_keeper_q").data("kendoDropDownList");
+            if (keeperQ) {
+                keeperQ.setDataSource(new kendo.data.DataSource({ data: memberData }));
+                keeperQ.select(0); // 回到 "請選擇"
+            }
+
+            // 重新灌：新增/修改用借閱人下拉
+            var keeperD = $("#book_keeper_d").data("kendoDropDownList");
+            if (keeperD) {
+                keeperD.setDataSource(new kendo.data.DataSource({ data: memberData }));
+                // 不要強制清空，避免你正在修改時被洗掉
+            }
         },
-        error: function () {
+        error: function (xhr) {
+            console.log("loadAllMembers failed:", xhr);
             alert("載入借閱人清單失敗");
         }
     });
@@ -707,3 +735,16 @@ $("#btn_save_member").on("click", function () {
         }
     });
 });
+
+function loadNextMemberId() {
+    $.ajax({
+        url: apiBaseUrl + "/api/member/next-id",
+        type: "GET",
+        success: function (nextId) {
+            $("#edit_user_id").val(nextId);
+        },
+        error: function () {
+            alert("取得下一個借閱人 ID 失敗");
+        }
+    });
+}
